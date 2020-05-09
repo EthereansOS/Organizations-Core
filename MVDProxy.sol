@@ -20,7 +20,7 @@ contract MVDProxy is IMVDProxy {
 
     address[] private _delegates;
 
-    constructor(address votingTokenAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalityProposalManagerAddress, address functionalitiesManagerAddress) public override {
+    constructor(address votingTokenAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalityProposalManagerAddress, address functionalitiesManagerAddress) public {
         if(votingTokenAddress == address(0)) {
             return;
         }

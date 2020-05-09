@@ -7,7 +7,7 @@ contract MVDFunctionalityModelsManager is IMVDFunctionalityModelsManager {
 
     mapping(string => Functionality) private _wellKnownFunctionalityModels;
 
-    constructor() public override {
+    constructor() public {
         init();
     }
 

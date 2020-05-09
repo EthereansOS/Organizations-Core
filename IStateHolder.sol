@@ -6,8 +6,8 @@ interface IStateHolder {
 
     function getProxy() external view returns (address);
     function setProxy() external;
-    function getState(uint256 i) external view returns (string memory name, string memory dataType, bytes memory value);
-    function getInfo(string calldata varName) external view returns (string memory dataType, bytes memory value, uint256 position);
+    function toJSON() external view returns(string memory);
+    function toJSON(uint256 start, uint256 l) external view returns(string memory);
     function getStateSize() external view returns (uint256);
     function exists(string calldata varName) external view returns(bool);
     function getDataType(string calldata varName) external view returns(string memory dataType);

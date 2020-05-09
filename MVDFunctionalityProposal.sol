@@ -34,7 +34,7 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
     uint256 private _totalRefuse;
 
     constructor(string memory codeName, address location, string memory methodSignature, string memory returnAbiParametersArray,
-        string memory replaces, address proxy) public override {
+        string memory replaces, address proxy) public {
         init(codeName, location, methodSignature, returnAbiParametersArray, replaces, proxy);
     }
 

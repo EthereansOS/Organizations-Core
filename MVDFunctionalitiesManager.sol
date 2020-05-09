@@ -24,7 +24,7 @@ contract MVDFunctionalitiesManager is IMVDFunctionalitiesManager, CommonUtilitie
         uint256 getMinimumBlockNumberSourceLocationId, address getMinimumBlockNumberFunctionalityAddress,
         uint256 getEmergencyMinimumBlockNumberSourceLocationId, address getEmergencyMinimumBlockNumberFunctionalityAddress,
         uint256 getEmergencySurveyStakingSourceLocationId, address getEmergencySurveyStakingFunctionalityAddress,
-        uint256 checkVoteResultSourceLocationId, address checkVoteResultFunctionalityAddress) public override {
+        uint256 checkVoteResultSourceLocationId, address checkVoteResultFunctionalityAddress) public {
         if(getMinimumBlockNumberFunctionalityAddress == address(0)) {
             return;
         }

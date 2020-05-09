@@ -27,7 +27,7 @@ contract StateHolder is IStateHolder, CommonUtilities {
     address private _proxy;
     uint256 private _stateSize;
 
-    constructor() public override {
+    constructor() public {
         init();
     }
 
@@ -36,23 +36,19 @@ contract StateHolder is IStateHolder, CommonUtilities {
         _state.push(Var("", DataType.BYTES, "", 0, false));
     }
 
-    function getState(uint256 i) public override view returns (string memory, string memory, bytes memory) {
-        uint256 position = 0;
-        for(uint256 z = 1; z < _state.length; z++) {
-            Var memory v = _state[z];
-            if(v.active && position++ == i) {
-                return (v.name, toString(v.dataType), v.value);
-            }
-        }
+    function toJSON() public override view returns(string memory) {
+        return toJSON(0, _state.length - 1);
     }
 
-    function getInfo(string memory varName) public override view returns (string memory dataType, bytes memory value, uint256 position) {
-        Var memory v = _state[_index[varName]];
-        if(v.active) {
-            dataType = toString(v.dataType);
-            value = v.value;
-            position = v.position - 1;
+    function toJSON(uint256 start, uint256 l) public override view returns(string memory json) {
+        uint256 length = start + 1 + l;
+        json = "[";
+        for(uint256 i = start; i < length; i++) {
+            json = !_state[i].active ? json : string(abi.encodePacked(json, '{"name":"', _state[i].name, '","type":"', toString(_state[i].dataType), '"}', i == length - (_state[i].active ? 1 : 0) ? "" : ","));
+            length += _state[i].active ? 0 : 1;
+            length = length > _state.length ? _state.length : length;
         }
+        json = string(abi.encodePacked(json, ']'));
     }
 
     function getStateSize() public override view returns (uint256) {

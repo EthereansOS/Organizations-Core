@@ -16,7 +16,7 @@ contract VotingToken is IERC20, IVotingToken {
     string private _name;
     string private _symbol;
 
-    constructor(string memory name, string memory symbol, uint256 decimals, uint256 totalSupply) public override {
+    constructor(string memory name, string memory symbol, uint256 decimals, uint256 totalSupply) public {
         if(totalSupply == 0) {
             return;
         }
