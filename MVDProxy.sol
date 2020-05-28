@@ -25,6 +25,11 @@ contract MVDProxy is IMVDProxy {
             return;
         }
         init(votingTokenAddress, stateHolderAddress, functionalityModelsManagerAddress, functionalityProposalManagerAddress, functionalitiesManagerAddress);
+        raiseFunctionalitySetEvent("getMinimumBlockNumberForSurvey");
+        raiseFunctionalitySetEvent("getMinimumBlockNumberForEmergencySurvey");
+        raiseFunctionalitySetEvent("getEmergencySurveyStaking");
+        raiseFunctionalitySetEvent("checkSurveyResult");
+        raiseFunctionalitySetEvent("onNewProposal");
     }
 
     function init(address votingTokenAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalityProposalManagerAddress, address functionalitiesManagerAddress) public override {
@@ -42,12 +47,6 @@ contract MVDProxy is IMVDProxy {
         _delegates[3] = functionalityModelsManagerAddress;
 
         IMVDFunctionalitiesManager(_delegates[4] = functionalitiesManagerAddress).setProxy();
-
-        raiseFunctionalitySetEvent("getMinimumBlockNumberForSurvey");
-        raiseFunctionalitySetEvent("getMinimumBlockNumberForEmergencySurvey");
-        raiseFunctionalitySetEvent("getEmergencySurveyStaking");
-        raiseFunctionalitySetEvent("checkSurveyResult");
-        raiseFunctionalitySetEvent("onNewProposal");
     }
 
     function raiseFunctionalitySetEvent(string memory codeName) private {
@@ -114,19 +113,17 @@ contract MVDProxy is IMVDProxy {
         emit MVDFunctionalitiesManagerChanged(setDelegate(4, newAddress), newAddress);
     }
 
-    function changeProxy(address payable newAddress) public override payable {
+    function changeProxy(address newAddress, bytes memory initPayload) public override {
         require(isAuthorizedFunctionality(msg.sender), "Unauthorized action!");
         require(newAddress != address(0), "Cannot set void address!");
-        newAddress.transfer(msg.value);
-        IERC20 votingToken = IERC20(_delegates[0]);
-        votingToken.transfer(newAddress, votingToken.balanceOf(address(this)));
         IMVDProxyDelegate(_delegates[0]).setProxy();
         IMVDProxyDelegate(_delegates[1]).setProxy();
         IMVDProxyDelegate(_delegates[2]).setProxy();
         IMVDProxyDelegate(_delegates[4]).setProxy();
-        IMVDProxy(newAddress).init(_delegates[0], _delegates[2], _delegates[3], _delegates[1], _delegates[4]);
         _delegates = new address[](0);
         emit ProxyChanged(newAddress);
+        (bool response,) = newAddress.call(initPayload);
+        require(response, "New address initPayload failed!");
     }
 
     function getFunctionalitiesAmount() public override view returns(uint256) {

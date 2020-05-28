@@ -14,7 +14,7 @@ interface IMVDProxy {
     function setMVDFunctionalityModelsManagerAddress(address newAddress) external;
     function getMVDFunctionalitiesManagerAddress() external view returns(address);
     function setMVDFunctionalitiesManagerAddress(address newAddress) external;
-    function changeProxy(address payable newAddress) external payable;
+    function changeProxy(address newAddress, bytes calldata initPayload) external;
     function getFunctionalitiesAmount() external view returns(uint256);
     function isValidProposal(address proposal) external view returns (bool);
     function isValidFunctionality(address functionality) external view returns(bool);
