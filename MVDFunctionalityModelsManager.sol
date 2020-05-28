@@ -23,6 +23,8 @@ contract MVDFunctionalityModelsManager is IMVDFunctionalityModelsManager {
 
         _wellKnownFunctionalityModels["checkSurveyResult"] = Functionality("checkSurveyResult", address(0), 0, address(0), false, "checkSurveyResult(address)", '["bool"]', false, false, address(0), true, 0);
 
+        _wellKnownFunctionalityModels["getVotesHardCap"] = Functionality("getVotesHardCap", address(0), 0, address(0), false, "getVotesHardCap()", '["uint256"]', false, false, address(0), false, 0);
+
         _wellKnownFunctionalityModels["onNewProposal"] = Functionality("onNewProposal", address(0), 0, address(0), true, "onNewProposal(address)", '[]', false, false, address(0), false, 0);
 
         _wellKnownFunctionalityModels["startProposal"] = Functionality("startProposal", address(0), 0, address(0), true, "startProposal(address,uint256,address)", '[]', false, true, address(0), false, 0);

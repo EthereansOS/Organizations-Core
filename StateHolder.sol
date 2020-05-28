@@ -3,6 +3,7 @@ pragma solidity ^0.6.0;
 import "./IMVDProxy.sol";
 import "./CommonUtilities.sol";
 import "./IStateHolder.sol";
+import "./IMVDFunctionalitiesManager.sol";
 
 contract StateHolder is IStateHolder, CommonUtilities {
 
@@ -36,6 +37,14 @@ contract StateHolder is IStateHolder, CommonUtilities {
         _state.push(Var("", DataType.BYTES, "", 0, false));
     }
 
+    modifier canSet {
+        require(_state.length > 0, "Not Initialized!");
+        if(_proxy != address(0)) {
+            require(IMVDFunctionalitiesManager(IMVDProxy(_proxy).getMVDFunctionalitiesManagerAddress()).isAuthorizedFunctionality(msg.sender), "UnauthorizedAccess");
+        }
+        _;
+    }
+
     function toJSON() public override view returns(string memory) {
         return toJSON(0, _state.length - 1);
     }
@@ -66,9 +75,7 @@ contract StateHolder is IStateHolder, CommonUtilities {
         }
     }
 
-    function setVal(string memory varName, DataType dataType, bytes memory val) private returns(bytes memory oldVal) {
-        require(_state.length > 0, "Not Initialized!");
-        require(_proxy == address(0) || IMVDProxy(_proxy).isAuthorizedFunctionality(msg.sender), "Only Proxy Functionalities can set vars");
+    function setVal(string memory varName, DataType dataType, bytes memory val) private canSet returns(bytes memory oldVal) {
         if(compareStrings(varName, "")) {
             return "";
         }
@@ -100,9 +107,7 @@ contract StateHolder is IStateHolder, CommonUtilities {
         _index[varName] = v.position;
     }
 
-    function clear(string memory varName) public override returns(string memory oldDataType, bytes memory oldVal) {
-        require(_state.length > 0, "Not Initialized!");
-        require(_proxy == address(0) || IMVDProxy(_proxy).isAuthorizedFunctionality(msg.sender), "Only Proxy Functionalities can set vars");
+    function clear(string memory varName) public canSet override returns(string memory oldDataType, bytes memory oldVal) {
         Var storage v = _state[_index[varName]];
         if(v.position > 0 && v.active) {
             oldDataType = toString(v.dataType);

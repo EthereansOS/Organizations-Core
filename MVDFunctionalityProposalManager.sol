@@ -3,14 +3,13 @@ pragma solidity ^0.6.0;
 import "./IMVDFunctionalityProposalManager.sol";
 import "./IMVDProxy.sol";
 import "./MVDFunctionalityProposal.sol";
+import "./IMVDFunctionalitiesManager.sol";
 
 contract MVDFunctionalityProposalManager is IMVDFunctionalityProposalManager {
 
     address private _proxy;
 
     mapping(address => bool) private _proposals;
-
-    mapping(string => address) private _pendingProposals;
 
     modifier onlyProxy() {
         require(msg.sender == address(_proxy), "Only Proxy can call this functionality");
@@ -21,37 +20,29 @@ contract MVDFunctionalityProposalManager is IMVDFunctionalityProposalManager {
         return setProposal(codeName, location, methodSignature, replaces, address(new MVDFunctionalityProposal(codeName, location, methodSignature, returnAbiParametersArray, replaces, _proxy)));
     }
 
-    function preconditionCheck(string memory codeName, address location, string memory methodSignature, string memory replaces) private view returns(bool hasCodeName, bool hasReplaces) {
+    function preconditionCheck(string memory codeName, address location, string memory methodSignature, string memory replaces) private view {
 
-        require(_pendingProposals[codeName] == address(0), "There actually is a pending proposal for this code name");
-
-        require(_pendingProposals[replaces] == address(0), "There actually is a pending proposal for this replacing name");
-
-        hasCodeName = !compareStrings(codeName, "");
-        hasReplaces = !compareStrings(replaces, "");
+        bool hasCodeName = !compareStrings(codeName, "");
+        bool hasReplaces = !compareStrings(replaces, "");
 
         require((hasCodeName || !hasCodeName && !hasReplaces) ? location != address(0) : true, "Cannot have zero address for functionality to set or one time functionality to call");
 
-        require(hasCodeName ? !compareStrings(methodSignature, "") : true, "Cannot have empty string for methodSignature");
+        require(location == address(0) || !compareStrings(methodSignature, ""), "Cannot have empty string for methodSignature");
 
-        require(hasCodeName || hasReplaces || location != address(0), "codeName and replaces cannot be both empty");
+        require(hasCodeName || hasReplaces ? true : compareStrings(methodSignature, "callOneTime(address)"), "One Time Functionality method signature allowed is callOneTime(address)");
 
-        IMVDProxy proxy = IMVDProxy(_proxy);
+        IMVDFunctionalitiesManager functionalitiesManager = IMVDFunctionalitiesManager(IMVDProxy(_proxy).getMVDFunctionalitiesManagerAddress());
 
-        require(hasCodeName && proxy.hasFunctionality(codeName) ? compareStrings(codeName, replaces) : true, "codeName is already used by another functionality");
+        require(hasCodeName && functionalitiesManager.hasFunctionality(codeName) ? compareStrings(codeName, replaces) : true, "codeName is already used by another functionality");
 
-        require(hasReplaces ? proxy.hasFunctionality(replaces) : true, "Cannot replace unexisting or inactive functionality");
+        require(hasReplaces ? functionalitiesManager.hasFunctionality(replaces) : true, "Cannot replace unexisting or inactive functionality");
     }
 
     function setProposal(string memory codeName, address location, string memory methodSignature, string memory replaces, address proposalAddress) private returns(address) {
 
-        (bool hasCodeName, bool hasReplaces) = preconditionCheck(codeName, location, methodSignature, replaces);
+        preconditionCheck(codeName, location, methodSignature, replaces);
 
         _proposals[proposalAddress] = true;
-
-        _pendingProposals[codeName] = (hasCodeName || !hasReplaces) ? proposalAddress : address(0);
-
-        _pendingProposals[replaces] = (hasReplaces || !hasCodeName) ? proposalAddress : address(0);
 
         return proposalAddress;
     }
@@ -67,29 +58,15 @@ contract MVDFunctionalityProposalManager is IMVDFunctionalityProposalManager {
 
         require(!proposal.isDisabled(), "Proposal is disabled!");
 
-        require(block.number >= surveyEndBlock, "Survey is still running!");
+        if(!proposal.isVotesHardCapReached()) {
+            require(block.number >= surveyEndBlock, "Survey is still running!");
+        }
 
         require(!proposal.isTerminated(), "Survey already terminated!");
-
-        _pendingProposals[proposal.getCodeName()] = address(0);
-
-        _pendingProposals[proposal.getReplaces()] = address(0);
     }
 
     function isValidProposal(address proposal) public override view returns (bool) {
         return _proposals[proposal];
-    }
-
-    function disableProposal(address proposalAddress) public override onlyProxy {
-        require(_proposals[proposalAddress], "Not a valid proposal");
-        IMVDFunctionalityProposal proposal = IMVDFunctionalityProposal(proposalAddress);
-        _pendingProposals[proposal.getCodeName()] = address(0);
-        _pendingProposals[proposal.getReplaces()] = address(0);
-    }
-
-    function getPendingProposal(string memory codeName) public override view returns(address proposalAddress, bool isReallyPending) {
-        IMVDFunctionalityProposal proposal = IMVDFunctionalityProposal(proposalAddress = _pendingProposals[codeName]);
-        isReallyPending = proposal.getProxy() == address(this) && block.number < proposal.getSurveyEndBlock() || !proposal.isTerminated();
     }
 
     function getProxy() public override view returns (address) {

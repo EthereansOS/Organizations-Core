@@ -3,9 +3,8 @@ pragma solidity ^0.6.0;
 import "./IMVDFunctionalityProposal.sol";
 import "./IMVDProxy.sol";
 import "./IERC20.sol";
-import "./CommonUtilities.sol";
 
-contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities {
+contract MVDFunctionalityProposal is IMVDFunctionalityProposal{
 
     bool private _collateralDataSet;
 
@@ -32,6 +31,10 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
     mapping(address => uint256) private _refuse;
     uint256 private _totalAccept;
     uint256 private _totalRefuse;
+    mapping(address => bool) private _withdrawed;
+
+    uint256 private _votesHardCap;
+    bool private _votesHardCapReached;
 
     constructor(string memory codeName, address location, string memory methodSignature, string memory returnAbiParametersArray,
         string memory replaces, address proxy) public {
@@ -49,7 +52,7 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         _replaces = replaces;
     }
 
-    function setCollateralData(bool emergency, address sourceLocation, uint256 sourceLocationId, bool submitable, bool isInternal, bool needsSender, address proposer) public override {
+    function setCollateralData(bool emergency, address sourceLocation, uint256 sourceLocationId, bool submitable, bool isInternal, bool needsSender, address proposer, uint256 votesHardCap) public override {
         require(!_collateralDataSet, "setCollateralData already called!");
         require(_proxy == msg.sender, "Only Original Proxy can call this method!");
         _sourceLocation = sourceLocation;
@@ -59,6 +62,7 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         _needsSender = needsSender;
         _proposer = proposer;
         _surveyDuration = toUint256(IMVDProxy(_proxy).read((_emergency = emergency) ? "getMinimumBlockNumberForEmergencySurvey" : "getMinimumBlockNumberForSurvey", bytes("")));
+        _votesHardCap = votesHardCap;
         _collateralDataSet = true;
     }
 
@@ -139,6 +143,14 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         return _disabled;
     }
 
+    function isVotesHardCapReached() public override view returns(bool) {
+        return _votesHardCapReached;
+    }
+
+    function getVotesHardCapToReach() public override view returns(uint256) {
+        return _votesHardCap;
+    }
+
     function start() public override {
         require(_collateralDataSet, "Still waiting for setCollateralData to be called!");
         require(msg.sender == _proxy, "Only Proxy can call this function!");
@@ -201,6 +213,8 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
     modifier duringSurvey() {
         require(_collateralDataSet, "Still waiting for setCollateralData to be called!");
         require(!_disabled, "Survey disabled!");
+        require(!_terminated, "Survey Terminated!");
+        require(!_votesHardCapReached, "Votes Hard Cap reached!");
         require(_surveyEndBlock > 0, "Survey Not Started!");
         require(block.number < _surveyEndBlock, "Survey ended!");
         _;
@@ -210,8 +224,18 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         require(_collateralDataSet, "Still waiting for setCollateralData to be called!");
         require(!_disabled, "Survey disabled!");
         require(_surveyEndBlock > 0, "Survey Not Started!");
-        require(block.number >= _surveyEndBlock, "Survey is still running!");
+        if(!_votesHardCapReached) {
+            require(block.number >= _surveyEndBlock, "Survey is still running!");
+        }
         _;
+    }
+
+    function _checkVotesHardCap() private {
+        if(_votesHardCap == 0 || (_totalAccept < _votesHardCap && _totalRefuse < _votesHardCap)) {
+            return;
+        }
+        _votesHardCapReached = true;
+        terminate();
     }
 
     function accept(uint256 amount) external override duringSurvey {
@@ -221,6 +245,7 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         _accept[msg.sender] = vote;
         _totalAccept += amount;
         emit Accept(msg.sender, amount);
+        _checkVotesHardCap();
     }
 
     function retireAccept(uint256 amount) external override duringSurvey {
@@ -245,6 +270,7 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         _accept[msg.sender] = vote;
         _totalAccept += amount;
         emit MoveToAccept(msg.sender, amount);
+        _checkVotesHardCap();
     }
 
     function refuse(uint256 amount) external override duringSurvey {
@@ -254,6 +280,7 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         _refuse[msg.sender] = vote;
         _totalRefuse += amount;
         emit Refuse(msg.sender, amount);
+        _checkVotesHardCap();
     }
 
     function retireRefuse(uint256 amount) external override duringSurvey {
@@ -278,6 +305,7 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         _refuse[msg.sender] = vote;
         _totalRefuse += amount;
         emit MoveToRefuse(msg.sender, amount);
+        _checkVotesHardCap();
     }
 
     function retireAll() external override duringSurvey {
@@ -297,14 +325,21 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
             terminate();
             return;
         }
-        IERC20(_token).transfer(msg.sender, _accept[msg.sender] + _refuse[msg.sender]);
+        _withdraw(true);
     }
 
     function terminate() public override onSurveyEnd {
         require(!_terminated, "Already terminated!");
         IMVDProxy(_proxy).setProposal();
-        if(_accept[msg.sender] + _refuse[msg.sender] > 0) {
+        _withdraw(false);
+    }
+
+    function _withdraw(bool launchError) private {
+        require(!launchError || _accept[msg.sender] + _refuse[msg.sender] > 0, "Nothing to Withdraw!");
+        require(!launchError || !_withdrawed[msg.sender], "Already Withdrawed!");
+        if(_accept[msg.sender] + _refuse[msg.sender] > 0 && !_withdrawed[msg.sender]) {
             IERC20(_token).transfer(msg.sender, _accept[msg.sender] + _refuse[msg.sender]);
+            _withdrawed[msg.sender] = true;
         }
     }
 
@@ -312,5 +347,71 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal, CommonUtilities 
         require(msg.sender == _proxy, "Unauthorized Access!");
         require(!_terminated, "Already terminated!");
         _terminated = true;
+    }
+
+    function toUint256(bytes memory bs) public pure returns(uint256 x) {
+        if(bs.length >= 32) {
+            assembly {
+                x := mload(add(bs, add(0x20, 0)))
+            }
+        }
+    }
+
+    function toString(address _addr) public pure returns(string memory) {
+        bytes32 value = bytes32(uint256(_addr));
+        bytes memory alphabet = "0123456789abcdef";
+
+        bytes memory str = new bytes(42);
+        str[0] = '0';
+        str[1] = 'x';
+        for (uint i = 0; i < 20; i++) {
+            str[2+i*2] = alphabet[uint(uint8(value[i + 12] >> 4))];
+            str[3+i*2] = alphabet[uint(uint8(value[i + 12] & 0x0f))];
+        }
+        return string(str);
+    }
+
+    function toString(uint _i) public pure returns(string memory) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len - 1;
+        while (_i != 0) {
+            bstr[k--] = byte(uint8(48 + _i % 10));
+            _i /= 10;
+        }
+        return string(bstr);
+    }
+
+    function getFirstJSONPart(address sourceLocation, uint256 sourceLocationId, address location) public pure returns(bytes memory) {
+        return abi.encodePacked(
+            '"sourceLocation":"',
+            toString(sourceLocation),
+            '","sourceLocationId":',
+            toString(sourceLocationId),
+            ',"location":"',
+            toString(location)
+        );
+    }
+
+    function formatReturnAbiParametersArray(string memory m) public pure returns(string memory) {
+        bytes memory b = bytes(m);
+        if(b.length < 2) {
+            return "[]";
+        }
+        if(b[0] != bytes1("[")) {
+            return "[]";
+        }
+        if(b[b.length - 1] != bytes1("]")) {
+            return "[]";
+        }
+        return m;
     }
 }

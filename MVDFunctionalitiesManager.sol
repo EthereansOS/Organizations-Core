@@ -171,9 +171,9 @@ contract MVDFunctionalitiesManager is IMVDFunctionalitiesManager, CommonUtilitie
         return _callingContext != address(0) && (_functionalityCount[functionality] > 0 || _callingContext == functionality);
     }
 
-    function getFunctionalityData(string memory codeName) public override view returns(address, uint256, string memory) {
+    function getFunctionalityData(string memory codeName) public override view returns(address, uint256, string memory, address, uint256) {
         Functionality memory functionality = _functionalities[_indexes[codeName]];
-        return (compareStrings(codeName, functionality.codeName) && functionality.active ? functionality.location : address(0), functionality.position, functionality.methodSignature);
+        return (compareStrings(codeName, functionality.codeName) && functionality.active ? functionality.location : address(0), functionality.position, functionality.methodSignature, functionality.sourceLocation, functionality.sourceLocationId);
     }
 
     function hasFunctionality(string memory codeName) public override view returns(bool) {
@@ -181,7 +181,7 @@ contract MVDFunctionalitiesManager is IMVDFunctionalitiesManager, CommonUtilitie
         return compareStrings(codeName, functionality.codeName) && functionality.active;
     }
 
-    function functionalitiesToJSON() public override view returns(string memory functionsJSONArray) {
+    function functionalitiesToJSON() public override view returns(string memory) {
         return functionalitiesToJSON(0, _functionalities.length);
     }
 
@@ -189,10 +189,30 @@ contract MVDFunctionalitiesManager is IMVDFunctionalitiesManager, CommonUtilitie
         uint256 length = start + l;
         functionsJSONArray = "[";
         for(uint256 i = start; i < length; i++) {
-            functionsJSONArray = !_functionalities[i].active ? functionsJSONArray : string(abi.encodePacked(functionsJSONArray, toJSON(_functionalities[i]), i == length - (_functionalities[i].active ? 1 : 0) ? "]" : ","));
+            functionsJSONArray = !_functionalities[i].active ? functionsJSONArray : string(abi.encodePacked(functionsJSONArray, toJSON(_functionalities[i]), i == length - (_functionalities[i].active ? 1 : 0) ? "" : ","));
             length += _functionalities[i].active ? 0 : 1;
             length = length > _functionalities.length ? _functionalities.length : length;
         }
+        functionsJSONArray = string(abi.encodePacked(functionsJSONArray, "]"));
+    }
+
+    function functionalityNames() public override view returns(string memory) {
+        return functionalityNames(0, _functionalities.length);
+    }
+
+    function functionalityNames(uint256 start, uint256 l) public override view returns(string memory functionsJSONArray) {
+        uint256 length = start + l;
+        functionsJSONArray = "[";
+        for(uint256 i = start; i < length; i++) {
+            functionsJSONArray = !_functionalities[i].active ? functionsJSONArray : string(abi.encodePacked(functionsJSONArray, '"', _functionalities[i].codeName, '"', i == length - (_functionalities[i].active ? 1 : 0) ? "" : ","));
+            length += _functionalities[i].active ? 0 : 1;
+            length = length > _functionalities.length ? _functionalities.length : length;
+        }
+        functionsJSONArray = string(abi.encodePacked(functionsJSONArray, "]"));
+    }
+
+    function functionalityToJSON(string memory codeName) public override view returns(string memory) {
+        return string(toJSON(_functionalities[_indexes[codeName]]));
     }
 
     function toJSON(Functionality memory func) private pure returns(bytes memory) {
@@ -229,7 +249,7 @@ contract MVDFunctionalitiesManager is IMVDFunctionalitiesManager, CommonUtilitie
         _proxy = _proxy == address(0) ?  msg.sender : address(0);
     }
 
-    function setupFunctionality(address proposalAddress) public override {
+    function setupFunctionality(address proposalAddress) public override returns(bool result) {
 
         require(_proxy == msg.sender, "Only Proxy can call This!");
 
@@ -240,18 +260,21 @@ contract MVDFunctionalitiesManager is IMVDFunctionalitiesManager, CommonUtilitie
         string memory replaces = proposal.getReplaces();
         bool hasReplaces = !compareStrings(replaces, "");
 
-        Functionality memory replacedFunctionality = _functionalities[_indexes[replaces]];
-
         if(!hasCodeName && !hasReplaces) {
-            IMVDProxy(_proxy).callFromManager(_callingContext = proposal.getLocation(), abi.encodeWithSignature("callOneTime(address)", proposalAddress));
+            (result,) = IMVDProxy(_proxy).callFromManager(_callingContext = proposal.getLocation(), abi.encodeWithSignature("callOneTime(address)", proposalAddress));
             _callingContext = address(0);
-            return;
+            return result;
         }
 
+        Functionality memory replacedFunctionality = _functionalities[_indexes[replaces]];
         uint256 position = hasReplaces ? replacedFunctionality.position : _functionalities.length;
 
         if(hasReplaces) {
-            IMVDProxy(_proxy).callFromManager(_callingContext = replacedFunctionality.location, abi.encodeWithSignature("onStop(address)", proposalAddress));
+            (result,) = IMVDProxy(_proxy).callFromManager(_callingContext = replacedFunctionality.location, abi.encodeWithSignature("onStop(address)", proposalAddress));
+            _callingContext = address(0);
+            if(!result) {
+                revert("onStop failed!");
+            }
         }
 
         replacedFunctionality.active = hasReplaces ? false : replacedFunctionality.active;
@@ -291,12 +314,18 @@ contract MVDFunctionalitiesManager is IMVDFunctionalitiesManager, CommonUtilitie
         _functionalityCount[newFunctionality.location] = _functionalityCount[newFunctionality.location] + (hasCodeName ? 1 : 0);
 
         if(hasCodeName) {
-            IMVDProxy(_proxy).callFromManager(_callingContext = newFunctionality.location, abi.encodeWithSignature("onStart(address,address)", proposalAddress, hasReplaces ? replacedFunctionality.location : address(0)));
+            (result,) = IMVDProxy(_proxy).callFromManager(_callingContext = newFunctionality.location, abi.encodeWithSignature("onStart(address,address)", proposalAddress, hasReplaces ? replacedFunctionality.location : address(0)));
+            _callingContext = address(0);
+            if(!result) {
+                revert("onStart failed!");
+            }
+        }
+
+        if(hasCodeName || hasReplaces) {
+            IMVDProxy(_proxy).emitFromManager(hasCodeName ? codeName : "", proposalAddress, hasReplaces ? replacedFunctionality.codeName : "", hasReplaces ? replacedFunctionality.sourceLocation : address(0), hasReplaces ? replacedFunctionality.sourceLocationId : 0, hasReplaces ? replacedFunctionality.location : address(0), hasReplaces ? replacedFunctionality.submitable : false, hasReplaces ? replacedFunctionality.methodSignature : "", hasReplaces ? replacedFunctionality.isInternal : false, hasReplaces ? replacedFunctionality.needsSender : false, hasReplaces ? replacedFunctionality.proposalAddress : address(0));
         }
         _callingContext = address(0);
-        if(hasCodeName || hasReplaces) {
-            IMVDProxy(_proxy).emitFromManager(hasCodeName ? codeName : "", hasCodeName ? position : 0, proposalAddress, hasReplaces ? replacedFunctionality.codeName : "", hasReplaces ? replacedFunctionality.location : address(0), hasReplaces ? replacedFunctionality.submitable : false, hasReplaces ? replacedFunctionality.methodSignature : "", hasReplaces ? replacedFunctionality.isInternal : false, hasReplaces ? replacedFunctionality.needsSender : false, hasReplaces ? replacedFunctionality.proposalAddress : address(0), hasReplaces ? replacedFunctionality.position : 0);
-        }
+        return true;
     }
 
     function setCallingContext(address location) public override returns(bool changed) {

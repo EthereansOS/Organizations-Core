@@ -18,13 +18,16 @@ interface IMVDFunctionalitiesManager {
     function isAuthorizedFunctionality(address functionality) external view returns(bool);
     function setCallingContext(address location) external returns(bool);
     function clearCallingContext() external;
-    function getFunctionalityData(string calldata codeName) external view returns(address, uint256, string memory);
+    function getFunctionalityData(string calldata codeName) external view returns(address, uint256, string memory, address, uint256);
     function hasFunctionality(string calldata codeName) external view returns(bool);
     function getFunctionalitiesAmount() external view returns(uint256);
-    function functionalitiesToJSON() external view returns(string memory functionsJSONArray);
+    function functionalitiesToJSON() external view returns(string memory);
     function functionalitiesToJSON(uint256 start, uint256 l) external view returns(string memory functionsJSONArray);
+    function functionalityNames() external view returns(string memory);
+    function functionalityNames(uint256 start, uint256 l) external view returns(string memory functionsJSONArray);
+    function functionalityToJSON(string calldata codeName) external view returns(string memory);
 
     function preConditionCheck(string calldata codeName, bytes calldata data, uint8 submitable, address sender, uint256 value) external view returns(address location, bytes memory payload);
 
-    function setupFunctionality(address proposalAddress) external;
+    function setupFunctionality(address proposalAddress) external returns (bool);
 }
