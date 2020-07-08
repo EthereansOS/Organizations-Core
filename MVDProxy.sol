@@ -8,6 +8,7 @@ import "./IMVDFunctionalityModelsManager.sol";
 import "./ICommonUtilities.sol";
 import "./IMVDFunctionalitiesManager.sol";
 import "./IMVDWallet.sol";
+import "./IERC721.sol";
 
 contract MVDProxy is IMVDProxy {
 
@@ -69,6 +70,20 @@ contract MVDProxy is IMVDProxy {
 
     function getMVDWalletAddress() public override view returns(address) {
         return _delegates[5];
+    }
+
+    function flushToWallet(address tokenAddress, bool is721, uint256 tokenId) public override {
+        require(IMVDFunctionalitiesManager(_delegates[4]).isAuthorizedFunctionality(msg.sender), "Unauthorized action!");
+        if(tokenAddress == address(0)) {
+            payable(_delegates[5]).transfer(payable(address(this)).balance);
+            return;
+        }
+        if(is721) {
+            IERC721(tokenAddress).transferFrom(address(this), _delegates[5], tokenId);
+            return;
+        }
+        IERC20 token = IERC20(tokenAddress);
+        token.transfer(_delegates[5], token.balanceOf(address(this)));
     }
 
     function setDelegate(uint256 position, address newAddress) public override returns(address oldAddress) {

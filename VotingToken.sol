@@ -3,6 +3,8 @@ pragma solidity ^0.6.0;
 import "./IMVDProxy.sol";
 import "./IERC20.sol";
 import "./IVotingToken.sol";
+import "./IMVDFunctionalityProposalManager.sol";
+import "./IMVDFunctionalitiesManager.sol";
 
 contract VotingToken is IERC20, IVotingToken {
 
@@ -63,20 +65,15 @@ contract VotingToken is IERC20, IVotingToken {
     }
 
     function transfer(address recipient, uint256 amount) public override returns (bool) {
-        require(_proxy == address(0) ? true : !IMVDProxy(_proxy).isValidProposal(recipient), "Cannot transfer to DFC Survey Proposal!");
         _transfer(msg.sender, recipient, amount);
         return true;
     }
 
     function allowance(address owner, address spender) public override view returns (uint256) {
-        if(IMVDProxy(_proxy).isValidProposal(spender)) {
-            return _balances[owner];
-        }
         return _allowances[owner][spender];
     }
 
     function approve(address spender, uint256 amount) public override returns (bool) {
-        require(!IMVDProxy(_proxy).isValidProposal(spender), "Cannot approve Proposals to spend tokens");
         _approve(msg.sender, spender, amount);
         return true;
     }
@@ -84,7 +81,7 @@ contract VotingToken is IERC20, IVotingToken {
     function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
         _transfer(sender, recipient, amount);
         address txSender = msg.sender;
-        if(!(IMVDProxy(_proxy).isValidProposal(txSender) && recipient == txSender)) {
+        if(_proxy == address(0) || !(IMVDFunctionalityProposalManager(IMVDProxy(_proxy).getMVDFunctionalityProposalManagerAddress()).isValidProposal(txSender) && recipient == txSender)) {
             _approve(sender, txSender, _allowances[sender][txSender] = sub(_allowances[sender][txSender], amount, "ERC20: transfer amount exceeds allowance"));
         }
         return true;
@@ -134,7 +131,7 @@ contract VotingToken is IERC20, IVotingToken {
     }
 
     function mint(uint256 amount) public override {
-        require(IMVDProxy(_proxy).isAuthorizedFunctionality(msg.sender), "Unauthorized access!");
+        require(IMVDFunctionalitiesManager(IMVDProxy(_proxy).getMVDFunctionalitiesManagerAddress()).isAuthorizedFunctionality(msg.sender), "Unauthorized access!");
 
         _totalSupply = add(_totalSupply, amount);
         _balances[_proxy] = add(_balances[_proxy], amount);
