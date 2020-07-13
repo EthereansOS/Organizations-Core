@@ -2,15 +2,16 @@ pragma solidity ^0.6.0;
 
 interface IMVDProxy {
 
-    function init(address votingTokenAddress, address functionalityProposalManagerAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalitiesManagerAddress, address walletAddress) external;
+    function init(address votingTokenAddress, address functionalityProposalManagerAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalitiesManagerAddress, address walletAddress, address doubleProxyAddress) external;
 
-    function getDelegates() external view returns(address,address,address,address,address,address);
+    function getDelegates() external view returns(address[] memory);
     function getToken() external view returns(address);
     function getMVDFunctionalityProposalManagerAddress() external view returns(address);
     function getStateHolderAddress() external view returns(address);
     function getMVDFunctionalityModelsManagerAddress() external view returns(address);
     function getMVDFunctionalitiesManagerAddress() external view returns(address);
     function getMVDWalletAddress() external view returns(address);
+    function getDoubleProxyAddress() external view returns(address);
     function setDelegate(uint256 position, address newAddress) external returns(address oldAddress);
     function changeProxy(address newAddress, bytes calldata initPayload) external;
     function isValidProposal(address proposal) external view returns (bool);

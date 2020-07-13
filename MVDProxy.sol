@@ -14,18 +14,18 @@ contract MVDProxy is IMVDProxy {
 
     address[] private _delegates;
 
-    constructor(address votingTokenAddress, address functionalityProposalManagerAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalitiesManagerAddress, address walletAddress) public {
+    constructor(address votingTokenAddress, address functionalityProposalManagerAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalitiesManagerAddress, address walletAddress, address doubleProxyAddress) public {
         if(votingTokenAddress == address(0)) {
             return;
         }
-        init(votingTokenAddress, functionalityProposalManagerAddress, stateHolderAddress, functionalityModelsManagerAddress, functionalitiesManagerAddress, walletAddress);
+        init(votingTokenAddress, functionalityProposalManagerAddress, stateHolderAddress, functionalityModelsManagerAddress, functionalitiesManagerAddress, walletAddress, doubleProxyAddress);
     }
 
-    function init(address votingTokenAddress, address functionalityProposalManagerAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalitiesManagerAddress, address walletAddress) public override {
+    function init(address votingTokenAddress, address functionalityProposalManagerAddress, address stateHolderAddress, address functionalityModelsManagerAddress, address functionalitiesManagerAddress, address walletAddress, address doubleProxyAddress) public override {
 
         require(_delegates.length == 0, "Init already called!");
 
-        _delegates = new address[](6);
+        _delegates = new address[](7);
 
         IMVDProxyDelegate(_delegates[0] = votingTokenAddress).setProxy();
 
@@ -38,14 +38,16 @@ contract MVDProxy is IMVDProxy {
         IMVDProxyDelegate(_delegates[4] = functionalitiesManagerAddress).setProxy();
 
         IMVDProxyDelegate(_delegates[5] = walletAddress).setProxy();
+
+        IMVDProxyDelegate(_delegates[6] = doubleProxyAddress).setProxy();
     }
 
     receive() external payable {
         revert("No Eth Accepted");
     }
 
-    function getDelegates() public override view returns(address,address,address,address,address,address) {
-        return(_delegates[0], _delegates[1], _delegates[2], _delegates[3], _delegates[4], _delegates[5]);
+    function getDelegates() public override view returns(address[] memory) {
+        return _delegates;
     }
 
     function getToken() public override view returns(address) {
@@ -70,6 +72,10 @@ contract MVDProxy is IMVDProxy {
 
     function getMVDWalletAddress() public override view returns(address) {
         return _delegates[5];
+    }
+
+    function getDoubleProxyAddress() public override view returns(address) {
+        return _delegates[6];
     }
 
     function flushToWallet(address tokenAddress, bool is721, uint256 tokenId) public override {
@@ -104,15 +110,15 @@ contract MVDProxy is IMVDProxy {
     function changeProxy(address newAddress, bytes memory initPayload) public override {
         require(IMVDFunctionalitiesManager(_delegates[4]).isAuthorizedFunctionality(msg.sender), "Unauthorized action!");
         require(newAddress != address(0), "Cannot set void address!");
-        IMVDProxyDelegate(_delegates[0]).setProxy();
-        IMVDProxyDelegate(_delegates[1]).setProxy();
-        IMVDProxyDelegate(_delegates[2]).setProxy();
-        IMVDProxyDelegate(_delegates[4]).setProxy();
-        IMVDProxyDelegate(_delegates[5]).setProxy();
+        for(uint256 i = 0; i < _delegates.length; i++) {
+            if(i != 3) {
+                IMVDProxyDelegate(_delegates[i]).setProxy();
+            }
+        }
         _delegates = new address[](0);
         emit ProxyChanged(newAddress);
         (bool response,) = newAddress.call(initPayload);
-        require(response, "New address initPayload failed!");
+        require(response, "New Proxy initPayload failed!");
     }
 
     function isValidProposal(address proposal) public override view returns (bool) {
