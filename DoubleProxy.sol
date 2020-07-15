@@ -58,10 +58,13 @@ contract DoubleProxy is IDoubleProxy {
 
     function proxies(uint256 start, uint256 offset) public override view returns(address[] memory out) {
         require(start < _proxies.length, "Invalid start");
-        uint256 length = offset < _proxies.length ? offset : _proxies.length;
+        uint256 length = offset > _proxies.length ? _proxies.length : offset;
         out = new address[](length);
+        length += start;
+        length = length > _proxies.length ? _proxies.length : length;
+        uint256 pos = 0;
         for(uint256 i = start; i < length; i++) {
-            out[i] = _proxies[i];
+            out[pos++] = _proxies[i];
         }
     }
 }
