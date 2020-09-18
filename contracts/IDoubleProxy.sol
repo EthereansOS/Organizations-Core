@@ -42,5 +42,6 @@ interface IDoubleProxy {
         view
         returns (address[] memory);
 
+    // DOCUMENT
     function proxies() external view returns (address[] memory);
 }
