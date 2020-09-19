@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0;
 
+/**
+ * @title Functionality Proposal Manager
+ * @dev Microservice for adding new proposals
+ */
 interface IMVDFunctionalityProposalManager {
     /**
      * @dev Add a new Proposal
