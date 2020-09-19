@@ -10,11 +10,11 @@ interface IMVDFunctionalityProposal {
     /**
      * @dev Functionality Initializer
      * @param codeName String ID of the Functionality
-     * @param location // DOCUMENTATION
-     * @param methodSignature // DOCUMENTATION
-     * @param returnAbiParametersArray // DOCUMENTATION
+     * @param location Address of the functionality/microservice to call
+     * @param methodSignature Name of the method of the microservice you want to call
+     * @param returnAbiParametersArray Array of return values obtained from the called microservice's method
      * @param replaces // DOCUMENTATION
-     * @param proxy // DOCUMENTATION
+     * @param proxy Address of the proxy
      */
     function init(
         string calldata codeName,
@@ -30,11 +30,13 @@ interface IMVDFunctionalityProposal {
      * @param emergency Bool flag controlling wether this is a standard or emergency proposal
      * @param sourceLocation ROBE location of the source code
      * @param sourceLocationId ROBE id
-     * @param submittable // DOCUMENTATION
-     * @param isInternal // DOCUMENTATION
-     * @param needsSender // DOCUMENTATION
-     * @param proposer Address of the proposer // DOCUMENTATION
-     * @param votesHardCap Hardcap value // DOCUMENTATION
+     * @param submittable Boolean flag controlling wether the microservice writes data to the chain
+     * @param isInternal Boolean flag controlling wether the microservice can be called from anyone (false) or
+     * can be called only by other microservices (true)
+     * @param needsSender All microservices calls are made py the Proxy, with this boolean flag you can
+     * forward the address that called the Proxy in the first place
+     * @param proposer Address of the proposer
+     * @param votesHardCap Hardcap value
      */
     function setCollateralData(
         bool emergency,
@@ -72,25 +74,35 @@ interface IMVDFunctionalityProposal {
      */
     function getSourceLocationId() external view returns (uint256);
 
-    // DOCUMENTATION
+    /**
+     * @dev GET address of the microservice
+     */
     function getLocation() external view returns (address);
 
-    // DOCUMENTATION
+    /**
+     * @dev GET the boolean flag controlling wether the microservice writes data to the chain
+     */
     function issubmittable() external view returns (bool);
 
-    // DOCUMENTATION
+    /**
+     * @dev GET the name of the microservice method to invoke
+     */
     function getMethodSignature() external view returns (string memory);
 
-    // DOCUMENTATION
-    function getReturnAbiParametersArray()
-        external
-        view
-        returns (string memory);
+    /**
+     * @dev GET the array of return values obtained from the called microservice's method
+     */
+    function getReturnAbiParametersArray() external view returns (string memory);
 
-    // DOCUMENTATION
+    /**
+     * @dev GET the boolean flag controlling wether the microservice can be called from anyone (false) or
+     * can be called only by other microservices (true)
+     */
     function isInternal() external view returns (bool);
 
-    // DOCUMENTATION
+    /**
+     * @dev GET the boolean flag controlling wether the original Proxy caller address should be forwarded or not
+     */
     function needsSender() external view returns (bool);
 
     /**
@@ -134,10 +146,7 @@ interface IMVDFunctionalityProposal {
      * @return accept Amount of YES votes
      * @return refuse Amount of NO votes
      */
-    function getVote(address addr)
-        external
-        view
-        returns (uint256 accept, uint256 refuse);
+    function getVote(address addr) external view returns (uint256 accept, uint256 refuse);
 
     /**
      * @dev // DOCUMENT

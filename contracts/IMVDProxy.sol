@@ -36,10 +36,7 @@ interface IMVDProxy {
     /**
      * @dev GET the Functionality Proposal Manager contract address
      */
-    function getMVDFunctionalityProposalManagerAddress()
-        external
-        view
-        returns (address);
+    function getMVDFunctionalityProposalManagerAddress() external view returns (address);
 
     /**
      * @dev GET the State Holder contract address
@@ -49,18 +46,12 @@ interface IMVDProxy {
     /**
      * @dev GET the Functionality Models Manager contract address
      */
-    function getMVDFunctionalityModelsManagerAddress()
-        external
-        view
-        returns (address);
+    function getMVDFunctionalityModelsManagerAddress() external view returns (address);
 
     /**
      * @dev GET the Functionalities Manager contract address
      */
-    function getMVDFunctionalitiesManagerAddress()
-        external
-        view
-        returns (address);
+    function getMVDFunctionalitiesManagerAddress() external view returns (address);
 
     /**
      * @dev GET the Wallet contract address
@@ -76,17 +67,28 @@ interface IMVDProxy {
         external
         returns (address oldAddress);
 
-    function changeProxy(address newAddress, bytes calldata initPayload)
-        external;
+    function changeProxy(address newAddress, bytes calldata initPayload) external;
 
     function isValidProposal(address proposal) external view returns (bool);
 
-    function isAuthorizedFunctionality(address functionality)
-        external
-        view
-        returns (bool);
+    function isAuthorizedFunctionality(address functionality) external view returns (bool);
 
-    // DOCUMENT
+    /**
+     * @dev Add a new proposal
+     * @param codeName ID of the Proposal
+     * @param emergency Boolean, true -> Emergency Proposal, false -> Standard Proposal
+     * @param sourceLocation ROBE location of the source code
+     * @param sourceLocationId ROBE id
+     * @param location Address of the functionality/microservice to call
+     * @param submittable Boolean flag controlling wether the microservice writes data to the chain
+     * @param methodSignature Name of the method of the microservice you want to call
+     * @param returnParametersJSONArray Array of json encoded return parameters of the proposal
+     * @param isInternal Boolean flag controlling wether the microservice can be called from anyone (false) or
+     * can be called only by other microservices (true)
+     * @param needsSender All microservices calls are made py the Proxy, with this boolean flag you can
+     * @param replaces // DOCUMENT
+     * @return proposalAddress Address of the newly created proposal
+     */
     function newProposal(
         string calldata codeName,
         bool emergency,
@@ -101,8 +103,10 @@ interface IMVDProxy {
         string calldata replaces
     ) external returns (address proposalAddress);
 
+    // DOCUMENTATION
     function startProposal(address proposalAddress) external;
 
+    // DOCUMENTATION
     function disableProposal(address proposalAddress) external;
 
     /**
@@ -184,11 +188,7 @@ interface IMVDProxy {
     ) external;
 
     event ProxyChanged(address indexed newAddress);
-    event DelegateChanged(
-        uint256 position,
-        address indexed oldAddress,
-        address indexed newAddress
-    );
+    event DelegateChanged(uint256 position, address indexed oldAddress, address indexed newAddress);
 
     event Proposal(address proposal);
     event ProposalCheck(address indexed proposal);

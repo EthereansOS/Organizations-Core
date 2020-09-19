@@ -5,9 +5,9 @@ interface IMVDFunctionalityProposalManager {
     /**
      * @dev Add a new Proposal
      * @param codeName ID of the proposal
-     * @param location // DOCUMENT
-     * @param methodSignature // DOCUMENT
-     * @param returnAbiParametersArray // DOCUMENT
+     * @param location Address of the functionality/microservice to call
+     * @param methodSignature Name of the method of the microservice you want to call
+     * @param returnAbiParametersArray Array of return values obtained from the called microservice's method
      * @param replaces // DOCUMENT
      * @return proposal Address of the newly added proposal
      */
@@ -37,8 +37,5 @@ interface IMVDFunctionalityProposalManager {
      * @param proposal Address of the proposal to check
      * @return isValid Boolean indicating the validity of the function
      */
-    function isValidProposal(address proposal)
-        external
-        view
-        returns (bool isValid);
+    function isValidProposal(address proposal) external view returns (bool isValid);
 }

@@ -48,12 +48,14 @@ interface IMVDFunctionalitiesManager {
      * @param codeName ID of the Functionality
      * @param sourceLocation ROBE location of the source code
      * @param sourceLocationId ROBE id
-     * @param location
-     * @param submittable
-     * @param methodSignature
-     * @param returnAbiParametersArray
-     * @param isInternal
-     * @param needsSender
+     * @param location Address of the functionality/microservice to call
+     * @param submittable Boolean flag controlling wether the microservice writes data to the chain
+     * @param methodSignature Name of the method of the microservice you want to call
+     * @param returnAbiParametersArray Array of return values obtained from the called microservice's method
+     * @param isInternal Boolean flag controlling wether the microservice can be called from anyone (false) or
+     * can be called only by other microservices (true)
+     * @param needsSender All microservices calls are made py the Proxy, with this boolean flag you can
+     * forward the address that called the Proxy in the first place
      */
     function addFunctionality(
         string calldata codeName,
@@ -72,12 +74,14 @@ interface IMVDFunctionalitiesManager {
      * @param codeName ID of the Functionality
      * @param sourceLocation ROBE location of the source code
      * @param sourceLocationId ROBE id
-     * @param location
-     * @param submittable
-     * @param methodSignature
-     * @param returnAbiParametersArray
-     * @param isInternal
-     * @param needsSender
+     * @param location Address of the functionality/microservice to call
+     * @param submittable Boolean flag controlling wether the microservice writes data to the chain
+     * @param methodSignature Name of the method of the microservice you want to call
+     * @param returnAbiParametersArray Array of return values obtained from the called microservice's method
+     * @param isInternal Boolean flag controlling wether the microservice can be called from anyone (false) or
+     * can be called only by other microservices (true)
+     * @param needsSender All microservices calls are made py the Proxy, with this boolean flag you can
+     * forward the address that called the Proxy in the first place
      * @param position Position of the Functionality to replace
      */
     function addFunctionality(
@@ -108,20 +112,14 @@ interface IMVDFunctionalitiesManager {
      * @param functionality Functionality to be checked
      * @return valid Boolean flag indicating the validity of the Functionality
      */
-    function isValidFunctionality(address functionality)
-        external
-        view
-        returns (bool valid);
+    function isValidFunctionality(address functionality) external view returns (bool valid);
 
     /**
      * @dev Check that the Functionality is an authorized one
      * @param functionality Functionality to be checked
-     * @return valid Boolean flag indicating the authorization status of the Functionality
+     * @return success Boolean flag indicating the authorization status of the Functionality
      */
-    function isAuthorizedFunctionality(address functionality)
-        external
-        view
-        returns (bool success);
+    function isAuthorizedFunctionality(address functionality) external view returns (bool success);
 
     // DOCUMENT
     function setCallingContext(address location) external returns (bool);
@@ -146,10 +144,7 @@ interface IMVDFunctionalitiesManager {
      * @param codeName ID of the Functionality to be checked
      * @return output Boolean flag indicating wether the Functionalities Manager has the given Functionality.
      */
-    function hasFunctionality(string calldata codeName)
-        external
-        view
-        returns (bool output);
+    function hasFunctionality(string calldata codeName) external view returns (bool output);
 
     /**
      * @dev GET the amount of functionalities present in the Functionalities Manager
@@ -181,10 +176,7 @@ interface IMVDFunctionalitiesManager {
     /**
      * @dev Given a Functionality ID return its JSON encoded version
      */
-    function functionalityToJSON(string calldata codeName)
-        external
-        view
-        returns (string memory);
+    function functionalityToJSON(string calldata codeName) external view returns (string memory);
 
     // DOCUMENT
     function preConditionCheck(
@@ -196,7 +188,5 @@ interface IMVDFunctionalitiesManager {
     ) external view returns (address location, bytes memory payload);
 
     // DOCUMENT
-    function setupFunctionality(address proposalAddress)
-        external
-        returns (bool);
+    function setupFunctionality(address proposalAddress) external returns (bool);
 }
