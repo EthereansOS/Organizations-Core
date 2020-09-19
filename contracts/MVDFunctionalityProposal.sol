@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity >=0.7.0;
 
 import "./IMVDFunctionalityProposal.sol";
 import "./IMVDProxy.sol";
@@ -30,7 +30,7 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal {
     mapping(address => uint256) private _refuse;
     uint256 private _totalAccept;
     uint256 private _totalRefuse;
-    mapping(address => bool) private _withdrawed;
+    mapping(address => bool) private _withdrawn;
 
     uint256 private _votesHardCap;
     bool private _votesHardCapReached;
@@ -415,19 +415,16 @@ contract MVDFunctionalityProposal is IMVDFunctionalityProposal {
             !launchError || _accept[msg.sender] + _refuse[msg.sender] > 0,
             "Nothing to Withdraw!"
         );
-        require(
-            !launchError || !_withdrawed[msg.sender],
-            "Already Withdrawed!"
-        );
+        require(!launchError || !_withdrawn[msg.sender], "Already Withdrawed!");
         if (
             _accept[msg.sender] + _refuse[msg.sender] > 0 &&
-            !_withdrawed[msg.sender]
+            !_withdrawn[msg.sender]
         ) {
             IERC20(_token).transfer(
                 msg.sender,
                 _accept[msg.sender] + _refuse[msg.sender]
             );
-            _withdrawed[msg.sender] = true;
+            _withdrawn[msg.sender] = true;
         }
     }
 

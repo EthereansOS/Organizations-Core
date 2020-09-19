@@ -1,7 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity >=0.7.0;
 
+/**
+ * // DOCUMENT Add detailed explanation of what a proxy is
+ * @title Proxy Interface
+ */
 interface IMVDProxy {
+    /**
+     * @dev Initialization logic used during the constructor call
+     * @param votingTokenAddress Address of the Voting Token
+     * @param functionalityProposalManagerAddress Address of the Functionality Proposal Manager
+     * @param stateHolderAddress Address of the State Holder contract
+     * @param functionalityModelsManagerAddress Address of the Functionality Models Manager
+     * @param functionalitiesManagerAddress Address of the Functionalities Manager
+     * @param walletAddress Address of the wallet
+     * @param doubleProxyAddress Address of the double proxy
+     */
     function init(
         address votingTokenAddress,
         address functionalityProposalManagerAddress,
@@ -14,27 +28,48 @@ interface IMVDProxy {
 
     function getDelegates() external view returns (address[] memory);
 
+    /**
+     * @dev GET the voting token contract address
+     */
     function getToken() external view returns (address);
 
+    /**
+     * @dev GET the Functionality Proposal Manager contract address
+     */
     function getMVDFunctionalityProposalManagerAddress()
         external
         view
         returns (address);
 
+    /**
+     * @dev GET the State Holder contract address
+     */
     function getStateHolderAddress() external view returns (address);
 
+    /**
+     * @dev GET the Functionality Models Manager contract address
+     */
     function getMVDFunctionalityModelsManagerAddress()
         external
         view
         returns (address);
 
+    /**
+     * @dev GET the Functionalities Manager contract address
+     */
     function getMVDFunctionalitiesManagerAddress()
         external
         view
         returns (address);
 
+    /**
+     * @dev GET the Wallet contract address
+     */
     function getMVDWalletAddress() external view returns (address);
 
+    /**
+     * @dev GET the Double Proxy contract address
+     */
     function getDoubleProxyAddress() external view returns (address);
 
     function setDelegate(uint256 position, address newAddress)
@@ -51,6 +86,7 @@ interface IMVDProxy {
         view
         returns (bool);
 
+    // DOCUMENT
     function newProposal(
         string calldata codeName,
         bool emergency,
@@ -69,12 +105,26 @@ interface IMVDProxy {
 
     function disableProposal(address proposalAddress) external;
 
+    /**
+     * @dev Transfer a token to an address
+     * @param receiver Address of the receiver
+     * @param value Amount of token to transfer
+     * @param token Address of the token to transfer
+     */
     function transfer(
         address receiver,
         uint256 value,
         address token
     ) external;
 
+    /**
+     * @dev Transfer an ERC721 to an address
+     * @param receiver Address of the receiver
+     * @param tokenId ID of the ERC721 to transfer
+     * @param data // DOCUMENTATION
+     * @param safe Boolean flag for triggering the SafeTransfer
+     * @param token Address of the token to transfer
+     */
     function transfer721(
         address receiver,
         uint256 tokenId,
@@ -83,28 +133,34 @@ interface IMVDProxy {
         address token
     ) external;
 
+    // DOCUMENT
     function flushToWallet(
         address tokenAddress,
         bool is721,
         uint256 tokenId
     ) external;
 
+    // DOCUMENT
     function setProposal() external;
 
+    // DOCUMENT
     function read(string calldata codeName, bytes calldata data)
         external
         view
         returns (bytes memory returnData);
 
+    // DOCUMENT
     function submit(string calldata codeName, bytes calldata data)
         external
         payable
         returns (bytes memory returnData);
 
+    // DOCUMENT
     function callFromManager(address location, bytes calldata payload)
         external
         returns (bool, bytes memory);
 
+    // DOCUMENT
     function emitFromManager(
         string calldata codeName,
         address proposal,
@@ -119,6 +175,7 @@ interface IMVDProxy {
         address proposalAddress
     ) external;
 
+    // DOCUMENT
     function emitEvent(
         string calldata eventSignature,
         bytes calldata firstIndex,

@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity >=0.7.0;
 
 /**
  * @title Interface for the Functionalities Manager
- * @dev
  */
 interface IMVDFunctionalitiesManager {
     /**
@@ -44,12 +43,11 @@ interface IMVDFunctionalitiesManager {
         address checkVoteResultFunctionalityAddress
     ) external;
 
-    // DOCUMENT
     /**
      * @dev Add a functionality to the Functionalities Manager
-     * @param codeName
-     * @param sourceLocation
-     * @param sourceLocationId
+     * @param codeNameID of the Functionality
+     * @param sourceLocation ROBE location of the source code
+     * @param sourceLocationId ROBE id
      * @param location
      * @param submittable
      * @param methodSignature
@@ -69,12 +67,11 @@ interface IMVDFunctionalitiesManager {
         bool needsSender
     ) external;
 
-    // DOCUMENT
     /**
      * @dev Replace a Functionality in the Functionalities Manager
-     * @param codeName
-     * @param sourceLocation
-     * @param sourceLocationId
+     * @param codeName ID of the Functionality
+     * @param sourceLocation ROBE location of the source code
+     * @param sourceLocationId ROBE id
      * @param location
      * @param submittable
      * @param methodSignature

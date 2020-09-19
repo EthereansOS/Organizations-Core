@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity >=0.7.0;
 
 /**
  * @title Interface for Proposal
@@ -10,11 +10,11 @@ interface IMVDFunctionalityProposal {
     /**
      * @dev Functionality Initializer
      * @param codeName String ID of the Functionality
-     * @param location  // DOCUMENTATION
-     * @param methodSignature
-     * @param returnAbiParameters
-     * @param replaces
-     * @param proxy
+     * @param location // DOCUMENTATION
+     * @param methodSignature // DOCUMENTATION
+     * @param returnAbiParametersArray // DOCUMENTATION
+     * @param replaces // DOCUMENTATION
+     * @param proxy // DOCUMENTATION
      */
     function init(
         string calldata codeName,
@@ -27,14 +27,14 @@ interface IMVDFunctionalityProposal {
 
     /**
      * @dev set the collateral attributes of the proposal
-     * @param emergency  // DOCUMENTATION
-     * @param sourceLocation
-     * @param sourceLocationId
-     * @param submittable
-     * @param isInternal
-     * @param needsSender
-     * @param proposer
-     * @param votesHardCap
+     * @param emergency Bool flag controlling wether this is a standard or emergency proposal
+     * @param sourceLocation ROBE location of the source code
+     * @param sourceLocationId ROBE id
+     * @param submittable // DOCUMENTATION
+     * @param isInternal // DOCUMENTATION
+     * @param needsSender // DOCUMENTATION
+     * @param proposer Address of the proposer // DOCUMENTATION
+     * @param votesHardCap Hardcap value // DOCUMENTATION
      */
     function setCollateralData(
         bool emergency,
@@ -68,7 +68,7 @@ interface IMVDFunctionalityProposal {
     function getSourceLocation() external view returns (address);
 
     /**
-     * @dev // DOCUMENT
+     * @dev GET the ROBE id
      */
     function getSourceLocationId() external view returns (uint256);
 
@@ -94,22 +94,22 @@ interface IMVDFunctionalityProposal {
     function needsSender() external view returns (bool);
 
     /**
-     * @dev GET the ROBE source location
+     * @dev // DOCUMENTATION
      */
     function getReplaces() external view returns (string memory);
 
     /**
-     * @dev GET the ROBE source location
+     * @dev GET the address of the proposer
      */
     function getProposer() external view returns (address);
 
     /**
-     * @dev GET the ROBE source location
+     * @dev GET The proposal end block
      */
     function getSurveyEndBlock() external view returns (uint256);
 
     /**
-     * @dev GET the ROBE source location
+     * @dev GET the duration of the Proposal in number of blocks
      */
     function getSurveyDuration() external view returns (uint256);
 
@@ -144,32 +144,74 @@ interface IMVDFunctionalityProposal {
      */
     function getVotes() external view returns (uint256, uint256);
 
+    /**
+     * @dev // DOCUMENT
+     */
     function start() external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function disable() external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function isDisabled() external view returns (bool);
 
+    /**
+     * @dev // DOCUMENT
+     */
     function isTerminated() external view returns (bool);
 
+    /**
+     * @dev // DOCUMENT
+     */
     function accept(uint256 amount) external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function retireAccept(uint256 amount) external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function moveToAccept(uint256 amount) external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function refuse(uint256 amount) external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function retireRefuse(uint256 amount) external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function moveToRefuse(uint256 amount) external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function retireAll() external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function withdraw() external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function terminate() external;
 
+    /**
+     * @dev // DOCUMENT
+     */
     function set() external;
 
     event Accept(address indexed voter, uint256 amount);

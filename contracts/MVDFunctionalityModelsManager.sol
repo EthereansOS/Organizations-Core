@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity >=0.7.0;
 
 import "./IMVDFunctionalityModelsManager.sol";
 import "./Functionality.sol";
@@ -173,6 +173,7 @@ contract MVDFunctionalityModelsManager is IMVDFunctionalityModelsManager {
             codeName,
             _wellKnownFunctionalityModels[string(codeName)].codeName
         );
+
 
             Functionality memory wellKnownFunctionality
          = _wellKnownFunctionalityModels[string(codeName)];

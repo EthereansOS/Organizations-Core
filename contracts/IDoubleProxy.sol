@@ -3,8 +3,6 @@ pragma solidity >=0.7.0;
 
 /**
  * @title Double Proxy Interface
- * @dev
- *
  */
 interface IDoubleProxy {
     /**
@@ -36,12 +34,16 @@ interface IDoubleProxy {
 
     /**
      * @dev Retrieve a portion of the proxies
+     * @param start Start Position
+     * @param offset End Position
      */
     function proxies(uint256 start, uint256 offset)
         external
         view
         returns (address[] memory);
 
-    // DOCUMENT
+    /**
+     * @dev Retrieve all the proxies
+     */
     function proxies() external view returns (address[] memory);
 }
