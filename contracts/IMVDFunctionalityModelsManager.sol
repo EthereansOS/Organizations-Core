@@ -11,7 +11,7 @@ interface IMVDFunctionalityModelsManager {
 
     /**
      * @dev Check Well Known Functionalities. If the check fails it will raise its own errors.
-     * @param codeNameID of the Functionality
+     * @param codeName ID of the Functionality
      * @param location
      * @param submittable
      * @param methodSignature

@@ -45,7 +45,7 @@ interface IMVDFunctionalitiesManager {
 
     /**
      * @dev Add a functionality to the Functionalities Manager
-     * @param codeNameID of the Functionality
+     * @param codeName ID of the Functionality
      * @param sourceLocation ROBE location of the source code
      * @param sourceLocationId ROBE id
      * @param location
