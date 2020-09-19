@@ -15,7 +15,6 @@ nav:
           - IMVDFunctionalityProposalManager: contracts/IMVDFunctionalityProposalManager.md
           - IMVDProxy: contracts/IMVDProxy.md
           - IMVDWallet: contracts/IMVDWallet.md
-          - IStateHolder: contracts/IStateHolder.md
           - IVotingToken: contracts/IVotingToken.md
 theme:
   name: readthedocs
