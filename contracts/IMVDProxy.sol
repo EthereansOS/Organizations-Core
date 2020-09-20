@@ -75,10 +75,10 @@ interface IMVDProxy {
 
     /**
      * @dev Add a new proposal
-     * @param codeName ID of the Proposal
+     * @param codeName ID of the microservice, to be called by the user through Proxy, can be blank.
      * @param emergency Boolean, true -> Emergency Proposal, false -> Standard Proposal
-     * @param sourceLocation ROBE location of the source code
-     * @param sourceLocationId ROBE id
+     * @param sourceLocation Location of the source code, saved in concatenated Base64 data chunks
+     * @param sourceLocationId Base64 data chunk id of the corresponding Microservice
      * @param location Address of the functionality/microservice to call
      * @param submittable Boolean flag controlling wether the microservice writes data to the chain
      * @param methodSignature Name of the method of the microservice you want to call
@@ -86,7 +86,7 @@ interface IMVDProxy {
      * @param isInternal Boolean flag controlling wether the microservice can be called from anyone (false) or
      * can be called only by other microservices (true)
      * @param needsSender All microservices calls are made py the Proxy, with this boolean flag you can
-     * @param replaces // DOCUMENT
+     * @param replaces codeName of the microservice that will be replaced by this Proposal, can be blank.
      * @return proposalAddress Address of the newly created proposal
      */
     function newProposal(
@@ -103,10 +103,14 @@ interface IMVDProxy {
         string calldata replaces
     ) external returns (address proposalAddress);
 
-    // DOCUMENTATION
+    /**
+     * @dev Can be used by external Proposal Managers to delay the Survey Start
+     */
     function startProposal(address proposalAddress) external;
 
-    // DOCUMENTATION
+    /**
+     * @dev Can be used by external Proposal Managers to disable not-yet started Surveys
+     */
     function disableProposal(address proposalAddress) external;
 
     /**
@@ -125,7 +129,7 @@ interface IMVDProxy {
      * @dev Transfer an ERC721 to an address
      * @param receiver Address of the receiver
      * @param tokenId ID of the ERC721 to transfer
-     * @param data // DOCUMENTATION
+     * @param data The optional payload to pass in the safeTransferFrom function
      * @param safe Boolean flag for triggering the SafeTransfer
      * @param token Address of the token to transfer
      */
@@ -137,34 +141,56 @@ interface IMVDProxy {
         address token
     ) external;
 
-    // DOCUMENT
+    /**
+     * @dev Utility public method callable by everyone to send all ether/tokens/NFT accidentally sent to the Proxy.
+     * It flushes all in the DFO Wallet
+     * @param tokenAddress the ERC20/ERC721 token to transfer. address(0) means flush ether
+     * @param is721 tokenAddress is 721 or ERC20
+     * @param tokenId the id of the eventual ERC721 Token to transfer
+     */
     function flushToWallet(
         address tokenAddress,
         bool is721,
         uint256 tokenId
     ) external;
 
-    // DOCUMENT
+    /**
+     * @dev Callable by the Proposals only. Starts the Proposal finalization procedure
+     */
     function setProposal() external;
 
-    // DOCUMENT
+    /**
+     * @dev Call a non-submitable (readonly function marked as pure or view) Microservice
+     * @param codeName the ID of the Microservice to be called
+     * @param data ABI encoded data payload to be passed to the Microservice
+     */
     function read(string calldata codeName, bytes calldata data)
         external
         view
         returns (bytes memory returnData);
 
-    // DOCUMENT
+    /**
+     * @dev Call a submitable (which writes on the Blockchain State) Microservice
+     * @param codeName the ID of the Microservice to be called
+     * @param data ABI encoded data payload to be passed to the Microservice
+     */
     function submit(string calldata codeName, bytes calldata data)
         external
         payable
         returns (bytes memory returnData);
 
-    // DOCUMENT
+    /**
+     * @dev callable by the MVDFunctionalitiesManager only.
+     * Calls a Microservice using the Proxy as msg.sender
+     */
     function callFromManager(address location, bytes calldata payload)
         external
         returns (bool, bytes memory);
 
-    // DOCUMENT
+    /**
+     * @dev callable by the MVDFunctionalitiesManager only.
+     * Emits the FunctionalitySet event by the Proxy
+     */
     function emitFromManager(
         string calldata codeName,
         address proposal,
@@ -179,7 +205,10 @@ interface IMVDProxy {
         address proposalAddress
     ) external;
 
-    // DOCUMENT
+    /**
+     * @dev callable by Microservices only.
+     * Emits the general purpose "Event" event by the Proxy
+     */
     function emitEvent(
         string calldata eventSignature,
         bytes calldata firstIndex,

@@ -3,31 +3,33 @@ pragma solidity >=0.7.0;
 
 /**
  * @title Interface for the Functionalities Manager
+ * @dev Functionalities Manager is the one that keeps track of all the Microservices of a DFO.
+ * It also contains all the logic to set/unset Microservices after a Proposal.
  */
 interface IMVDFunctionalitiesManager {
     /**
-     * @dev GET the proxy
+     * @dev GET the Proxy
      */
     function getProxy() external view returns (address);
 
     /**
-     * @dev SET the proxy
+     * @dev SET the Proxy
      */
     function setProxy() external;
 
     /**
      * @dev Initializer logic used during the constructor call
-     * @param sourceLocation ROBE location of the source code
-     * @param getMinimumBlockNumberSourceLocationId ROBE id
+     * @param sourceLocation Location of the source code, saved in concatenated Base64 data chunks
+     * @param getMinimumBlockNumberSourceLocationId Base64 data chunk id of the corresponding Microservice
      * @param getMinimumBlockNumberFunctionalityAddress Address of the Functionality that controls
      * the block duration of regular proposals
-     * @param getEmergencyMinimumBlockNumberSourceLocationId ROBE id
+     * @param getEmergencyMinimumBlockNumberSourceLocationId Base64 data chunk id of the corresponding Microservice
      * @param getEmergencyMinimumBlockNumberFunctionalityAddress Address for the Functionality that controls
      * the block duration of emergency proposals
-     * @param getEmergencySurveyStakingSourceLocationId ROBE id
+     * @param getEmergencySurveyStakingSourceLocationId Base64 data chunk id of the corresponding Microservice
      * @param getEmergencySurveyStakingFunctionalityAddress Address for the Functionality that controls the
      * minimum amount of vote to be staked in order to start an Emergency Proposal
-     * @param checkVoteResultSourceLocationId ROBE id
+     * @param checkVoteResultSourceLocationId Base64 data chunk id of the corresponding Microservice
      * @param checkVoteResultFunctionalityAddress Address for the Functionality that controls the
      * check for determining if a Proposal was successful or it failed
      */
@@ -45,16 +47,16 @@ interface IMVDFunctionalitiesManager {
 
     /**
      * @dev Add a functionality to the Functionalities Manager
-     * @param codeName ID of the Functionality
-     * @param sourceLocation ROBE location of the source code
-     * @param sourceLocationId ROBE id
+     * @param codeName ID of the microservice, to be called by the user through Proxy.
+     * @param sourceLocation Location of the source code, saved in concatenated Base64 data chunks
+     * @param sourceLocationId Base64 data chunk id of the corresponding Microservice
      * @param location Address of the functionality/microservice to call
      * @param submittable Boolean flag controlling wether the microservice writes data to the chain
      * @param methodSignature Name of the method of the microservice you want to call
      * @param returnAbiParametersArray Array of return values obtained from the called microservice's method
      * @param isInternal Boolean flag controlling wether the microservice can be called from anyone (false) or
      * can be called only by other microservices (true)
-     * @param needsSender All microservices calls are made py the Proxy, with this boolean flag you can
+     * @param needsSender All microservices calls are made by the Proxy, with this boolean flag you can
      * forward the address that called the Proxy in the first place
      */
     function addFunctionality(
@@ -71,9 +73,9 @@ interface IMVDFunctionalitiesManager {
 
     /**
      * @dev Replace a Functionality in the Functionalities Manager
-     * @param codeName ID of the Functionality
-     * @param sourceLocation ROBE location of the source code
-     * @param sourceLocationId ROBE id
+     * @param codeName ID of the microservice, to be called by the user through Proxy.
+     * @param sourceLocation Location of the source code, saved in concatenated Base64 data chunks
+     * @param sourceLocationId Base64 data chunk id of the corresponding Microservice
      * @param location Address of the functionality/microservice to call
      * @param submittable Boolean flag controlling wether the microservice writes data to the chain
      * @param methodSignature Name of the method of the microservice you want to call
@@ -121,13 +123,26 @@ interface IMVDFunctionalitiesManager {
      */
     function isAuthorizedFunctionality(address functionality) external view returns (bool success);
 
-    // DOCUMENT
+    /**
+     * @dev This method can be called only by the Proxy.
+     * When a new submitable Microservice is called, this method is used to let other DFO Delegates (e.g. StateHolder) to be fully operative.
+     * If you call a Microservice directly, bypassing the Proxy, the context will be blank and Delegates cannot allow you to do any operation.
+     * @param location The address of the currently running Microservice
+     * @return true if the calling context is correctly set, false if the context was already set (this happens, for example, when someone calls a Microservice including a logic to call another Microservice through the Proxy).
+     */
     function setCallingContext(address location) external returns (bool);
 
-    // DOCUMENT
+    /**
+     * @dev This method can be called only by the Proxy.
+     * Clears the context at the end of the Microservice execution
+     */
     function clearCallingContext() external;
 
-    // DOCUMENT
+    /**
+     * @dev Utility method to retrieve all important stuff to call a Microservice
+     * @param codeName the codeName of the Microservice you need info
+     * @return the address of the contract including the logic of the Microservice, the method signature of the Microservice, the position in the Functionalities array, the location of the source code, saved in byte64 concatenated data chunks, the locationId of the source code.
+     */
     function getFunctionalityData(string calldata codeName)
         external
         view
@@ -151,10 +166,16 @@ interface IMVDFunctionalitiesManager {
      */
     function getFunctionalitiesAmount() external view returns (uint256);
 
-    // DOCUMENT
+    /**
+     * @dev For frontend purposes. Gives back the info about functionalities using the JSON Array format
+    */
     function functionalitiesToJSON() external view returns (string memory);
 
-    // DOCUMENT
+    /**
+     * @dev For frontend purposes. Gives back the info about functionalities using the JSON Array format
+     * @param start the start position of the array
+     * @param l the array offset
+    */
     function functionalitiesToJSON(uint256 start, uint256 l)
         external
         view
@@ -178,7 +199,16 @@ interface IMVDFunctionalitiesManager {
      */
     function functionalityToJSON(string calldata codeName) external view returns (string memory);
 
-    // DOCUMENT
+    /**
+     * @dev Method called by the Proxy when someone calls a Microservice.
+     * It has a double function: checks if you are in the correct context (e.g. are you trying to call a non-submitable Microservice through the correct "read" function of the Proxy?)
+     * and gives back the address of the Microservice and the correct payload that the proxy will use to execute a .call() method.
+     * @param codeName the Microservice to be called
+     * @param data the payload to be used within the Microservice (ABI encoded)
+     * @param submittable 1 true, 0 false
+     * @param sender the original msg.sender of the Proxy read/submit call, to be used if the Microservice has the needsSender flag set to true
+     * @param value the original msg.value of the Proxy submit call, to be used if the Microservice is submitable and has the needsSender flag set to true
+    */
     function preConditionCheck(
         string calldata codeName,
         bytes calldata data,
@@ -187,6 +217,10 @@ interface IMVDFunctionalitiesManager {
         uint256 value
     ) external view returns (address location, bytes memory payload);
 
-    // DOCUMENT
+    /**
+     * @dev callable by the Proxy only.
+     * Sets up the new Microservice add/replace/remove action, grabbing the data from the MVDFunctionalityProposal at the given address
+     * @param proposalAddress the address of the Proposal to be set
+     */
     function setupFunctionality(address proposalAddress) external returns (bool);
 }

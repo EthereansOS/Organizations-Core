@@ -9,11 +9,11 @@ pragma solidity >=0.7.0;
 interface IMVDFunctionalityProposal {
     /**
      * @dev Functionality Initializer
-     * @param codeName String ID of the Functionality
+     * @param codeName ID of the microservice, to be called by the user through Proxy, can be blank.
      * @param location Address of the functionality/microservice to call
      * @param methodSignature Name of the method of the microservice you want to call
      * @param returnAbiParametersArray Array of return values obtained from the called microservice's method
-     * @param replaces // DOCUMENTATION
+     * @param replaces codeName of the microservice that will be replaced by this Proposal, can be blank.
      * @param proxy Address of the proxy
      */
     function init(
@@ -28,8 +28,8 @@ interface IMVDFunctionalityProposal {
     /**
      * @dev set the collateral attributes of the proposal
      * @param emergency Bool flag controlling wether this is a standard or emergency proposal
-     * @param sourceLocation ROBE location of the source code
-     * @param sourceLocationId ROBE id
+     * @param sourceLocation Location of the source code, saved in concatenated Base64 data chunks
+     * @param sourceLocationId Base64 data chunk id of the corresponding Microservice
      * @param submittable Boolean flag controlling wether the microservice writes data to the chain
      * @param isInternal Boolean flag controlling wether the microservice can be called from anyone (false) or
      * can be called only by other microservices (true)
@@ -65,12 +65,12 @@ interface IMVDFunctionalityProposal {
     function isEmergency() external view returns (bool);
 
     /**
-     * @dev GET the ROBE source location
+     * @dev GET the Location of the source code, saved in concatenated Base64 data chunks
      */
     function getSourceLocation() external view returns (address);
 
     /**
-     * @dev GET the ROBE id
+     * @dev GET the Base64 data chunk id of the corresponding Microservice
      */
     function getSourceLocationId() external view returns (uint256);
 
@@ -106,7 +106,7 @@ interface IMVDFunctionalityProposal {
     function needsSender() external view returns (bool);
 
     /**
-     * @dev // DOCUMENTATION
+     * @dev codeName of the microservice that will be replaced by this Proposal, can be blank.
      */
     function getReplaces() external view returns (string memory);
 
@@ -141,85 +141,87 @@ interface IMVDFunctionalityProposal {
     function toJSON() external view returns (string memory);
 
     /**
-     * @dev GET the current status of the voting
-     * @param addr // DOCUMENT
+     * @dev GET the current status of the voting of the given address
+     * @param addr The address of the voter you want to know status
      * @return accept Amount of YES votes
      * @return refuse Amount of NO votes
      */
     function getVote(address addr) external view returns (uint256 accept, uint256 refuse);
 
     /**
-     * @dev // DOCUMENT
+     * @dev Get the current votes status
+     * @return accept Amount of YES votes
+     * @return refuse Amount of NO votes
      */
     function getVotes() external view returns (uint256, uint256);
 
     /**
-     * @dev // DOCUMENT
+     * @dev Can be used by external Proposal Managers to delay the Survey Start
      */
     function start() external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Can be used by external Proposal Managers to disable not-yet started Surveys
      */
     function disable() external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Check if a Proposal was canceled before its start
      */
     function isDisabled() external view returns (bool);
 
     /**
-     * @dev // DOCUMENT
+     * @dev Check if the Proposal reached the natural time termination or the reachement of the Hard Cap.
      */
     function isTerminated() external view returns (bool);
 
     /**
-     * @dev // DOCUMENT
+     * @dev Vote to accept the Proposal, staking your voting tokens. Can be called only if the Proposal is still running.
      */
     function accept(uint256 amount) external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Retire your votes. Can be called only if the Proposal is still running.
      */
     function retireAccept(uint256 amount) external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Move some "refuse" votes to "accept". Can be called only if the Proposal is still running.
      */
     function moveToAccept(uint256 amount) external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Vote to refuse the Proposal, staking your voting tokens. Can be called only if the Proposal is still running.
      */
     function refuse(uint256 amount) external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Retire your votes. Can be called only if the Proposal is still running.
      */
     function retireRefuse(uint256 amount) external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Move some "accept" votes to "refuse". Can be called only if the Proposal is still running.
      */
     function moveToRefuse(uint256 amount) external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Retire all your votes, retreiving back your staked voting tokens. Can be called only if the Proposal is still running.
      */
     function retireAll() external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Withdraw all the token you staked. Can be called only if the Proposal reaches the Hard Cap or the final Block.
      */
     function withdraw() external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Force the Proposal to call the Proxy and execute the finalization operations. Can be called only if the Proposal reaches the Hard Cap or the final Block.
      */
     function terminate() external;
 
     /**
-     * @dev // DOCUMENT
+     * @dev Callable by the Proxy only. Marks this Proposal as definitively terminate. User can still call the withdrawAll() function to withdraw the tokens, of course.
      */
     function set() external;
 

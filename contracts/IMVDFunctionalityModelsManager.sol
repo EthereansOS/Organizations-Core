@@ -3,7 +3,7 @@ pragma solidity >=0.7.0;
 
 /**
  * @title Functionalities Models Manager
- * @dev Well Known Functionalities are "special" Fnctionalities must be implemented according to
+ * @dev Well Known Functionalities are "special" Functionalities/Microservices must be implemented according to
  * a specific pattern. Well Known Functionalities can be found in the implementation of this Interface.
  */
 interface IMVDFunctionalityModelsManager {
@@ -11,7 +11,7 @@ interface IMVDFunctionalityModelsManager {
 
     /**
      * @dev Check Well Known Functionalities. If the check fails it will raise its own errors.
-     * @param codeName ID of the Functionality
+     * @param codeName ID of the microservice, to be called by the user through Proxy.
      * @param submittable Boolean flag controlling wether the microservice writes data to the chain
      * @param methodSignature Name of the method of the microservice you want to call
      * @param returnAbiParametersArray Array of return values obtained from the called microservice's method
@@ -19,7 +19,7 @@ interface IMVDFunctionalityModelsManager {
      * can be called only by other microservices (true)
      * @param needsSender All microservices calls are made py the Proxy, with this boolean flag you can
      * forward the address that called the Proxy in the first place
-     * @param replaces // DOCUMENT
+     * @param replaces codeName of the microservice that will be replaced by the Proposal to be created, can be blank.
      */
     function checkWellKnownFunctionalities(
         string calldata codeName,

@@ -2,7 +2,8 @@ pragma solidity >=0.7.0;
 
 /**
  * @title Wallet
- * @dev // DOCUMENTATION
+ * @dev The wallet is used to store all the assets of a DFO (ethers, ERC20 Tokens, ERC721 NFTs).
+ * All the functions to transfer assets can be called by the Proxy only.
  */
 interface IMVDWallet {
     /**
@@ -18,7 +19,7 @@ interface IMVDWallet {
     /**
      * @dev SET new wallet
      * @param newWallet New wallet address
-     * @param tokenAddress // DOCUMENT
+     * @param tokenAddress The voting token, used to flush balance to new wallet
      */
     function setNewWallet(address payable newWallet, address tokenAddress)
         external;
@@ -39,7 +40,7 @@ interface IMVDWallet {
      * @dev Transfer an ERC721 to an address
      * @param receiver Address of the receiver
      * @param tokenId ID of the ERC721 to transfer
-     * @param data // DOCUMENTATION
+     * @param data The optional payload to pass in the safeTransferFrom function
      * @param safe Boolean flag for triggering the SafeTransfer
      * @param token Address of the token to transfer
      */
@@ -60,7 +61,7 @@ interface IMVDWallet {
     /**
      * @dev Transfer an ERC721 to the NewWallet
      * @param tokenId ID of the ERC721 to transfer
-     * @param data // DOCUMENTATION
+     * @param data The optional payload passed in the safeTransferFrom function
      * @param safe Boolean flag for triggering the SafeTransfer
      * @param tokenAddress Address of the token to transfer
      */

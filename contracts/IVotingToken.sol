@@ -54,9 +54,13 @@ interface IVotingToken {
      */
     function burn(uint256 amount) external;
 
-    // DOCUMENTATION
+    /**
+     * @dev see the OpenZeppelin's documentation
+     */
     function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
 
-    // DOCUMENTATION
+    /**
+     * @dev see the OpenZeppelin's documentation
+     */
     function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool);
 }
