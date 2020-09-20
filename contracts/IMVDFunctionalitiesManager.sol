@@ -128,9 +128,9 @@ interface IMVDFunctionalitiesManager {
      * When a new submitable Microservice is called, this method is used to let other DFO Delegates (e.g. StateHolder) to be fully operative.
      * If you call a Microservice directly, bypassing the Proxy, the context will be blank and Delegates cannot allow you to do any operation.
      * @param location The address of the currently running Microservice
-     * @return true if the calling context is correctly set, false if the context was already set (this happens, for example, when someone calls a Microservice including a logic to call another Microservice through the Proxy).
+     * @return changed True if the calling context is correctly set, false if the context was already set (this happens, for example, when someone calls a Microservice including a logic to call another Microservice through the Proxy).
      */
-    function setCallingContext(address location) external returns (bool);
+    function setCallingContext(address location) external returns (bool changed);
 
     /**
      * @dev This method can be called only by the Proxy.
