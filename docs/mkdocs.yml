@@ -8,7 +8,7 @@ nav:
   - API:
       - Contracts:
           - ICommonUtilities: contracts/ICommonUtilities.md
-          - IDounleProxy: contracts/IDoubleProxy.md
+          - IDoubleProxy: contracts/IDoubleProxy.md
           - IMVDFunctionalitiesManager: contracts/IMVDFunctionalitiesManager.md
           - IMVDFunctionalityModelsManager: contracts/IMVDFunctionalityModelsManager.md
           - IMVDFunctionalityProposal: contracts/IMVDFunctionalityProposal.md
