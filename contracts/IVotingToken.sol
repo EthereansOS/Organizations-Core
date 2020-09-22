@@ -2,7 +2,10 @@
 pragma solidity >=0.7.0;
 
 /**
- * @title Voting Token interface
+ * @title Voting Token interface.
+ * @dev A voting token is an ERC20 used inside a DFO to vote proposals.
+ * Since proposals are code and voting tokens control which proposal get accepted, they are the
+ * programmable equities of the DFO.
  */
 interface IVotingToken {
     /**
