@@ -1,6 +1,6 @@
 # Decentralized Flexible Organization - DFO
 
-## Microservices on Ethereum 👽 for Independent Dapps ugradable by voting  😱
+## Microservices on Ethereum 👽 for Independent Dapps upgradable by voting  😱
 
 ##### Authors: Marco Vasapollo ([@vasapower](https://twitter.com/vasapower_9)) and Alessandro Mario Laganà Toschi ([@alessandromlt](https://twitter.com/alessandromlt)) | <bro@buidl.life>
 

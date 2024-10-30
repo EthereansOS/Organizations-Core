@@ -1,11 +1,13 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0;
 
+// DOCUMENT
 struct Functionality {
     string codeName;
     address sourceLocation;
     uint256 sourceLocationId;
     address location;
-    bool submitable;
+    bool submittable;
     string methodSignature;
     string returnAbiParametersArray;
     bool isInternal;

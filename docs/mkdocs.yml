@@ -1,0 +1,25 @@
+site_name: DFO Protocol
+docs_dir: md-build
+site_dir: build
+permalink: True
+nav:
+  - Home: README.md
+  - Contributing: CONTRIBUTING.md
+  - API:
+      - Contracts:
+          - ICommonUtilities: contracts/ICommonUtilities.md
+          - IDoubleProxy: contracts/IDoubleProxy.md
+          - IMVDFunctionalitiesManager: contracts/IMVDFunctionalitiesManager.md
+          - IMVDFunctionalityModelsManager: contracts/IMVDFunctionalityModelsManager.md
+          - IMVDFunctionalityProposal: contracts/IMVDFunctionalityProposal.md
+          - IMVDFunctionalityProposalManager: contracts/IMVDFunctionalityProposalManager.md
+          - IMVDProxy: contracts/IMVDProxy.md
+          - IMVDWallet: contracts/IMVDWallet.md
+          - IVotingToken: contracts/IVotingToken.md
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - typescript
+    - javascript
